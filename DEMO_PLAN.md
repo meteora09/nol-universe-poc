@@ -4,6 +4,7 @@
 
 | 단계 | 상태 | 결과 |
 | --- | --- | --- |
+| GitHub Pages 공개 배포 | passed | https://meteora09.github.io/nol-universe-poc/ |
 | 로컬 목업 | passed | 홈, 탐색, 상세, 장바구니, 로그인/회원가입, 예약, 마이페이지 |
 | PoC 사용자 | passed | 신규, 재방문, VIP, 예약 이탈 4개 계정 |
 | Unified SDK 설치 | passed | `@amplitude/unified`, 단일 초기화 파일, 환경 변수 기반 비활성화 |

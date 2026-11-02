@@ -44,6 +44,6 @@ Braze Custom Event의 실제 택소노미가 수집된 뒤 이벤트명/속성 �
 
 ## GitHub Pages 배포
 
-개인 계정의 `nol-universe-poc` 공개 저장소에 `main` 브랜치를 푸시한 뒤 **Settings → Pages → Build and deployment → Source: GitHub Actions**를 선택합니다. `.github/workflows/deploy.yml`이 `npm ci`와 Vite 빌드를 실행하고 `https://<GitHub 사용자명>.github.io/nol-universe-poc/`에 배포합니다. 배포 빌드에서도 `VITE_AMPLITUDE_ENABLED=false`로 고정되어 있습니다.
+[공개 사이트](https://meteora09.github.io/nol-universe-poc/)는 [meteora09/nol-universe-poc](https://github.com/meteora09/nol-universe-poc) 저장소의 `main` 브랜치를 GitHub Actions로 빌드해 배포합니다. `.github/workflows/deploy.yml`이 `npm ci`와 Vite 빌드를 실행합니다. 배포 빌드에서도 `VITE_AMPLITUDE_ENABLED=false`로 고정되어 있습니다.
 
 `.env.local`, `node_modules`, `dist`는 `.gitignore`로 저장소에서 제외됩니다. 브라우저에 저장된 예약과 회원 데이터도 저장소에 포함되지 않습니다.
