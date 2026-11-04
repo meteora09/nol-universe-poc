@@ -76,4 +76,18 @@ inventory.forEach(([category,area,district,title,price],i)=>{
  const original=Math.round(price*1.32/1000)*1000;
  products.push({id:`demo-${category}-${i}`,category,area,district,region:district,title,subtitle:`${area} ${district} · ${category==='flight'||category==='transport'?'편리한 이동':'여행을 즐기는 하루'}`,price,original,discount:Math.round((original-price)/original*100),rating:[4.9,4.8,4.7,4.9][i%4],reviews:180+i*23,badge:['인기','NOL 특가','추천','주말 인기'][i%4],image:photo(pics[category][i%pics[category].length]),tags:category==='flight'||category==='transport'?['일정 선택','모바일 예약']:[(i%7===0?'애견동반':i%7===1?'키즈 호텔':i%7===2?'오션뷰':i%7===3?'가족여행':i%7===4?'스파펜션':'인기 상품'),'모바일 예약']});
 });
+
+const ticketInventory=[
+ ['musical','서울','대학로','뮤지컬 〈별이 내리는 밤〉',59000,'창작뮤지컬'],['musical','부산','드림씨어터','뮤지컬 〈바다의 노래〉',68000,'라이선스'],['musical','대전','예술의전당','뮤지컬 〈다시, 봄〉',52000,'창작뮤지컬'],['musical','광주','문화예술회관','뮤지컬 〈시간의 문〉',48000,'오리지널/내한'],['musical','강원','춘천','뮤지컬 〈숲속의 편지〉',42000,'창작뮤지컬'],
+ ['concert','서울','올림픽홀','라이트업 라이브 콘서트',79000,'발라드'],['concert','부산','벡스코','부산 웨이브 콘서트',84000,'페스티벌'],['concert','대전','예술의전당','재즈 인 더 시티',55000,'재즈/소울'],['concert','광주','김대중컨벤션센터','광주 뮤직 페스티벌',69000,'페스티벌'],['concert','강원','춘천','레이크사이드 어쿠스틱 라이브',48000,'인디'],['concert','서울','마포','록 나이트 라이브',58000,'락/메탈'],
+ ['sports','서울','잠실','서울 야구 주말 경기',32000,'야구'],['sports','부산','사직','부산 야구 홈경기',30000,'야구'],['sports','대전','월드컵경기장','대전 축구 홈경기',28000,'축구'],['sports','광주','기아챔피언스필드','광주 야구 홈경기',29000,'야구'],['sports','강원','춘천','강원 농구 주말 경기',26000,'농구'],
+ ['exhibition','서울','성수','빛과 색의 미디어아트',22000,'미디어아트'],['exhibition','부산','영도','부산 바다 사진전',18000,'전시'],['exhibition','대전','엑스포','우주 탐험 특별전',24000,'체험'],['exhibition','광주','비엔날레','현대미술 산책',21000,'전시'],['exhibition','강원','강릉','커피와 디자인 전시',16000,'전시'],
+ ['classical','서울','예술의전당','가을밤 클래식 콘서트',45000,'오케스트라'],['classical','부산','문화회관','부산 필하모닉의 밤',48000,'오케스트라'],['classical','대전','예술의전당','피아노 리사이틀',39000,'독주회'],['classical','광주','문화예술회관','발레 〈달빛 호수〉',52000,'무용'],['classical','강원','춘천','숲속 실내악 콘서트',36000,'실내악'],
+ ['family','서울','광진','가족 뮤지컬 〈구름 기차〉',34000,'아동극'],['family','부산','센텀','키즈 매직 라이브',29000,'마술'],['family','대전','엑스포','공룡 탐험 가족 공연',32000,'아동극'],['family','광주','문화예술회관','어린이 음악극 〈숲의 친구들〉',28000,'음악극'],['family','강원','춘천','가족 인형극 〈달토끼〉',24000,'인형극'],
+ ['play','서울','대학로','연극 〈우리의 계절〉',35000,'로맨스'],['play','부산','서면','연극 〈두 번째 편지〉',33000,'드라마'],['play','대전','소극장','연극 〈문을 열면〉',30000,'추리'],['play','광주','충장로','연극 〈웃음의 온도〉',29000,'코미디'],['play','강원','춘천','연극 〈강가의 집〉',27000,'드라마'],
+];
+ticketInventory.forEach(([genre,region,venue,title,price,subgenre],i)=>{
+ const original=Math.round(price*1.3/1000)*1000;
+ products.push({id:`demo-ticket-${genre}-${i}`,category:'ticket',genre,subgenre,region,title,subtitle:`${region} ${venue} · 공연/행사`,price,original,discount:Math.round((original-price)/original*100),rating:[4.9,4.8,4.7][i%3],reviews:125+i*19,badge:['단독 특가','오픈 예정','추천'][i%3],image:photo(['photo-1503095396549-807759245b35','photo-1459749411175-04bf5292ceea','photo-1507676184212-d03ab07a01bf','photo-1490750967868-88aa4486c946'][i%4]),tags:['모바일 티켓','지정 좌석'],art:['midnight','city','blue','garden'][i%4]});
+});
 export const money = n => n.toLocaleString('ko-KR') + '원';
