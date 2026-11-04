@@ -1,29 +1,35 @@
 // Unified SDK entry point. VITE_AMPLITUDE_ENABLED=false guarantees no SDK initialization,
 // autocapture, Session Replay, Experiment fetch, or Guides & Surveys requests.
-import * as amplitude from '@amplitude/unified';
-
 export const amplitudeConfig = {
   apiKey: import.meta.env.VITE_AMPLITUDE_API_KEY || '',
   enabled: import.meta.env.VITE_AMPLITUDE_ENABLED === 'true',
   serverZone: import.meta.env.VITE_AMPLITUDE_SERVER_ZONE || 'US',
 };
 let initialization;
-export function initializeAmplitude() {
+let amplitude;
+export function initializeAmplitude(initialUserId) {
   if (!amplitudeConfig.enabled || !amplitudeConfig.apiKey) return Promise.resolve(false);
   if (!initialization) {
-    initialization = amplitude.initAll(amplitudeConfig.apiKey, {
-      serverZone: amplitudeConfig.serverZone,
-      analytics: { autocapture: true },
-      sessionReplay: { sampleRate: 1 },
-      engagement: { skip: false },
-    }).then(() => true);
+    initialization = import('@amplitude/unified').then(async sdk => {
+      amplitude = sdk;
+      await amplitude.initAll(amplitudeConfig.apiKey, {
+        serverZone: amplitudeConfig.serverZone,
+        analytics: { autocapture: true, ...(initialUserId ? { userId: initialUserId } : {}) },
+        sessionReplay: { sampleRate: 1 },
+        engagement: { skip: false },
+      });
+      return true;
+    });
   }
   return initialization;
 }
 export async function identifySignedInUser(user) {
   if (!amplitudeConfig.enabled) return;
-  await initializeAmplitude();
-  amplitude.setUserId(user.id);
+  if (!await initializeAmplitude()) return;
+  amplitude.setUserId(user.amplitudeUserId || user.id);
+  // A pasted Amplitude User ID represents an existing real profile. Do not
+  // overwrite its properties with the local demo persona's fake attributes.
+  if (user.amplitudeUserId) return;
   const identify = new amplitude.Identify()
     .set('tier', user.tier)
     .set('signup_date', user.signupDate)
@@ -32,6 +38,6 @@ export async function identifySignedInUser(user) {
   amplitude.identify(identify);
 }
 export function clearAmplitudeUser() {
-  if (amplitudeConfig.enabled) amplitude.reset();
+  if (amplitudeConfig.enabled && amplitude) amplitude.reset();
 }
 // Custom track calls intentionally wait for the Braze-derived taxonomy.
