@@ -1,6 +1,6 @@
 # NOL Universe PoC 웹 목업
 
-NOL의 홈페이지 정보 구조를 참고해 만든 로컬 체험용 웹 목업입니다. 실제 NOL 서비스와 연결되지 않으며 상품, 가격, 예약은 모두 예시입니다. 숙소·티켓·레저·항공 탐색, 검색, 찜, 장바구니, 로그인, 회원가입, 예약 완료, 마이페이지를 사용할 수 있습니다. 쿠폰·혜택 화면에서 국내여행·해외여행·티켓 혜택을 탐색하고 쿠폰을 받을 수 있습니다.
+NOL의 홈페이지 정보 구조를 참고해 만든 로컬 체험용 웹 목업입니다. 실제 NOL 서비스와 연결되지 않으며 상품, 가격, 예약은 모두 예시입니다. 숙소·티켓·레저·항공 탐색, 검색, 찜, 장바구니, 로그인, 회원가입, 예약 완료, 마이페이지를 사용할 수 있습니다. 쿠폰·혜택 화면에서 국내여행·해외여행·티켓 혜택을 탐색하고 쿠폰을 받을 수 있습니다. 상단의 전체 카테고리는 메뉴로 열리며, 티켓 전용 화면에는 배너 캐러셀과 장르별 랭킹, 오픈 예정, 할인 상품이 있습니다.
 
 ## 실행
 
@@ -44,7 +44,7 @@ Braze Custom Event의 실제 택소노미가 수집된 뒤 이벤트명/속성 �
 
 ## 참고
 
-- [NOL 공식 홈페이지](https://nol.yanolja.com/)와 [쿠폰·혜택 화면](https://nol.yanolja.com/benefit?category=BENEFIT_HOME)의 검색, 내비게이션, 프로모션 배너, 카테고리 및 추천 상품 흐름을 참고했습니다.
+- [NOL 공식 홈페이지](https://nol.yanolja.com/), [티켓 화면](https://nol.yanolja.com/ticket), [쿠폰·혜택 화면](https://nol.yanolja.com/benefit?category=BENEFIT_HOME)의 검색, 내비게이션, 프로모션 배너, 카테고리 및 추천 상품 흐름을 참고했습니다.
 - 예시 사진: Unsplash (`public/media`에 포함)
 - [Amplitude Unified SDK 공식 문서](https://amplitude.com/docs/sdks/analytics/browser/browser-unified-sdk/get-started)
 
