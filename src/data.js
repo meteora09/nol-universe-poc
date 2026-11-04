@@ -34,4 +34,46 @@ export const products = [
   {id:'secret-stage',category:'ticket',genre:'play',title:'연극 〈비밀의 무대〉',subtitle:'서울 대학로 · 마지막 장면의 반전',price:28000,original:40000,discount:30,rating:4.7,reviews:963,badge:'타임딜',image:import.meta.env.BASE_URL+'media/photo-1503095396549-807759245b35.jpg',tags:['지정 좌석','모바일 티켓'],region:'서울',art:'secret'},
   {id:'jazz-room',category:'ticket',genre:'concert',title:'재즈룸 라이브',subtitle:'서울 홍대 · 가까이에서 듣는 재즈',price:44000,original:58000,discount:24,rating:4.9,reviews:344,badge:'이번 주 오픈',image:import.meta.env.BASE_URL+'media/photo-1507676184212-d03ab07a01bf.jpg',tags:['지정 좌석','한정 수량'],region:'서울',art:'jazz'},
 ];
+
+// PoC inventory. These are example products for exercising region and booking journeys.
+const photo=(id)=>import.meta.env.BASE_URL+`media/${id}.jpg`;
+const pics={hotel:['photo-1566073771259-6a8506099945','photo-1571896349842-33c89424de2d','photo-1582719508461-905c673771fd','photo-1533105079780-92b9be482077'],pension:['photo-1613490493576-7fde63acd811','photo-1476514525535-07fb3b4ae5f1'],leisure:['photo-1490750967868-88aa4486c946','photo-1476514525535-07fb3b4ae5f1'],flight:['photo-1436491865332-7a61a109cc05'],global:['photo-1542314831-068cd1dbfeeb','photo-1566073771259-6a8506099945'],tour:['photo-1590559899731-a382839e5549','photo-1490750967868-88aa4486c946'],transport:['photo-1474487548417-781cb71495f3']};
+const inventory=[
+ ['hotel','서울','강남/역삼/삼성','강남 어반 스위트',139000],['hotel','서울','홍대/합정/마포','홍대 디자인 호텔',119000],
+ ['hotel','부산','해운대','해운대 블루 오션 호텔',156000],['hotel','부산','광안리','광안리 마리나 스테이',132000],
+ ['hotel','제주','서귀포','서귀포 가든 리조트',178000],['hotel','제주','제주시','제주 공항 시티 호텔',99000],
+ ['hotel','경기','가평/양평','가평 레이크 리조트',167000],['hotel','경기','수원/용인','용인 포레스트 호텔',109000],
+ ['hotel','인천','송도','송도 파크 호텔',134000],['hotel','인천','영종도','영종도 선셋 리조트',149000],
+ ['hotel','강원','속초','속초 비치 호텔',142000],['hotel','강원','강릉','강릉 경포 리조트',159000],
+ ['hotel','경상','경주','경주 한옥 호텔',119000],['hotel','경상','통영/거제','통영 마리나 리조트',173000],
+ ['hotel','전라','여수','여수 오션 호텔',148000],['hotel','전라','전주','전주 한옥 스테이',99000],
+ ['hotel','충청','대전','대전 시티 호텔',105000],['hotel','충청','부여/공주','부여 힐링 리조트',169000],
+ ['pension','강원','속초','속초 오션뷰 풀빌라',189000],['pension','강원','양양','양양 서프 하우스',149000],
+ ['pension','경기','가평','가평 프라이빗 풀빌라',219000],['pension','경기','양평','양평 숲속 독채 펜션',159000],
+ ['pension','제주','서귀포','서귀포 돌담 풀빌라',198000],['pension','제주','애월','애월 바람 스테이',172000],
+ ['pension','경상','경주','경주 감성 한옥 펜션',139000],['pension','경상','남해','남해 바다 정원 펜션',164000],
+ ['leisure','경기','용인','용인 테마파크 종일권',39000],['leisure','경기','가평','가평 수상레저 패스',49000],
+ ['leisure','서울','잠실','잠실 어드벤처 이용권',42000],['leisure','서울','성수','성수 아트 체험 티켓',24000],
+ ['leisure','부산','해운대','해운대 아쿠아리움',29000],['leisure','부산','기장','부산 해안 스카이라인',35000],
+ ['leisure','제주','서귀포','제주 자연 체험 패스',22000],['leisure','제주','애월','애월 액티비티 패키지',59000],
+ ['flight','제주','제주','김포 → 제주 편도 항공권',42900],['flight','제주','제주','부산 → 제주 편도 항공권',38900],
+ ['flight','부산','김해','김포 → 부산 편도 항공권',49900],['flight','부산','김해','제주 → 부산 편도 항공권',45900],
+ ['flight','강원','양양','김포 → 양양 편도 항공권',55900],['flight','전라','여수','김포 → 여수 편도 항공권',52900],
+ ['global','일본','오사카','오사카 난바 호텔',136000],['global','일본','후쿠오카','후쿠오카 하카타 스테이',117000],
+ ['global','대만','타이베이','타이베이 센트럴 호텔',128000],['global','대만','가오슝','가오슝 하버 스테이',109000],
+ ['global','태국','방콕','방콕 리버사이드 호텔',155000],['global','태국','푸켓','푸켓 비치 리조트',212000],
+ ['global','베트남','다낭','다낭 오션 리조트',179000],['global','베트남','나트랑','나트랑 베이 호텔',143000],
+ ['tour','일본','도쿄','도쿄 전망대 입장권',29000],['tour','일본','교토','교토 시내 투어',49000],
+ ['tour','대만','타이베이','타이베이 시티 패스',38000],['tour','대만','지우펀','지우펀 야경 투어',54000],
+ ['tour','태국','방콕','방콕 리버 크루즈',45000],['tour','태국','푸켓','푸켓 아일랜드 투어',73000],
+ ['tour','베트남','다낭','다낭 바나힐 입장권',42000],['tour','베트남','호이안','호이안 야경 투어',33000],
+ ['transport','부산','부산역','서울 → 부산 고속버스',27800],['transport','부산','부산역','부산 시내 렌터카',49000],
+ ['transport','강원','강릉','서울 → 강릉 고속열차',29900],['transport','강원','속초','서울 → 속초 고속버스',24000],
+ ['transport','전라','여수','서울 → 여수 고속열차',47800],['transport','전라','전주','서울 → 전주 고속버스',21500],
+ ['transport','경상','경주','서울 → 경주 고속열차',49800],['transport','경상','포항','서울 → 포항 고속열차',53900],
+];
+inventory.forEach(([category,area,district,title,price],i)=>{
+ const original=Math.round(price*1.32/1000)*1000;
+ products.push({id:`demo-${category}-${i}`,category,area,district,region:district,title,subtitle:`${area} ${district} · ${category==='flight'||category==='transport'?'편리한 이동':'여행을 즐기는 하루'}`,price,original,discount:Math.round((original-price)/original*100),rating:[4.9,4.8,4.7,4.9][i%4],reviews:180+i*23,badge:['인기','NOL 특가','추천','주말 인기'][i%4],image:photo(pics[category][i%pics[category].length]),tags:category==='flight'||category==='transport'?['일정 선택','모바일 예약']:[(i%7===0?'애견동반':i%7===1?'키즈 호텔':i%7===2?'오션뷰':i%7===3?'가족여행':i%7===4?'스파펜션':'인기 상품'),'모바일 예약']});
+});
 export const money = n => n.toLocaleString('ko-KR') + '원';
