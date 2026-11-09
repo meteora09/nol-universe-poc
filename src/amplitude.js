@@ -7,14 +7,14 @@ export const amplitudeConfig = {
 };
 let initialization;
 let amplitude;
-export function initializeAmplitude(initialUserId) {
+export function initializeAmplitude(initialUserId, initialDeviceId) {
   if (!amplitudeConfig.enabled || !amplitudeConfig.apiKey) return Promise.resolve(false);
   if (!initialization) {
     initialization = import('@amplitude/unified').then(async sdk => {
       amplitude = sdk;
       await amplitude.initAll(amplitudeConfig.apiKey, {
         serverZone: amplitudeConfig.serverZone,
-        analytics: { autocapture: true, ...(initialUserId ? { userId: initialUserId } : {}) },
+        analytics: { autocapture: true, ...(initialUserId ? { userId: initialUserId } : {}), ...(initialDeviceId ? { deviceId: initialDeviceId } : {}) },
         sessionReplay: { sampleRate: 1 },
         engagement: { skip: false },
       });
@@ -26,10 +26,11 @@ export function initializeAmplitude(initialUserId) {
 export async function identifySignedInUser(user) {
   if (!amplitudeConfig.enabled) return;
   if (!await initializeAmplitude()) return;
-  amplitude.setUserId(user.amplitudeUserId || user.id);
+  if (user.amplitudeDeviceId) amplitude.setDeviceId(user.amplitudeDeviceId);
+  amplitude.setUserId(user.amplitudeUserId || (user.amplitudeDeviceId ? undefined : user.id));
   // A pasted Amplitude User ID represents an existing real profile. Do not
   // overwrite its properties with the local demo persona's fake attributes.
-  if (user.amplitudeUserId) return;
+  if (user.amplitudeUserId || user.amplitudeDeviceId) return;
   const identify = new amplitude.Identify()
     .set('tier', user.tier)
     .set('signup_date', user.signupDate)
@@ -39,5 +40,8 @@ export async function identifySignedInUser(user) {
 }
 export function clearAmplitudeUser() {
   if (amplitudeConfig.enabled && amplitude) amplitude.reset();
+}
+export function getAmplitudeDeviceId() {
+  return amplitude?.getDeviceId() || null;
 }
 // Custom track calls intentionally wait for the Braze-derived taxonomy.
