@@ -38,9 +38,9 @@ npm run dev
 
 ## Amplitude 준비 상태
 
-`@amplitude/unified`가 설치되어 있고 초기화 진입점은 `src/amplitude.js` 한 곳입니다. `.env.local`에 프로젝트 API 키가 설정되어 있지만 `VITE_AMPLITUDE_ENABLED=false`이므로 **`initAll()`을 호출하지 않습니다.** 자동 수집, Session Replay, Feature Experiment, Guides & Surveys 요청과 이벤트 전송이 모두 비활성화된 상태입니다. `track()` 호출도 없습니다. 로그인·회원가입·로그아웃에 필요한 `setUserId`, `identify`, `reset` 코드는 나중에 활성화될 때만 실행됩니다.
+`@amplitude/unified`가 설치되어 있고 초기화 진입점은 `src/amplitude.js` 한 곳입니다. `.env.local`에 프로젝트 API 키가 설정되어 있지만 `VITE_AMPLITUDE_ENABLED=false`이므로 **`initAll()`과 `track()`을 호출하지 않습니다.** 자동 수집, Session Replay, Feature Experiment, Guides & Surveys 요청과 이벤트 전송이 모두 비활성화된 상태입니다. 로그인·회원가입·로그아웃에 필요한 `setUserId`, `identify`, `reset` 코드도 나중에 활성화될 때만 실행됩니다.
 
-Braze Custom Event의 실제 택소노미가 수집된 뒤 이벤트명/속성 표를 확정하고 각 화면에 태깅하세요. 데이터센터(US/EU), Experiment deployment key, Session Replay 샘플링, Guides & Surveys 배포 설정도 확인해야 합니다. **`VITE_AMPLITUDE_ENABLED=true`로 바꾸는 즉시 SDK 자동 수집과 네트워크 요청이 시작됩니다.** 그 전에 택소노미와 프로젝트 설정을 검증하세요.
+Amplitude PoC project의 실제 Braze Custom Event 수집명과 이벤트 속성을 확인해 검색·상세·찜·장바구니 진입·예약 진입/완료·회원가입 태깅을 코드에 연결했습니다. [태깅 계획](TAGGING_PLAN.md)에 이벤트별 속성과 발생 시점, 제외한 CRM 이벤트를 기록했습니다. PoC 시나리오 제어판의 **최근 행동 태깅 미리보기**에서 이벤트명과 속성을 전송 없이 확인할 수 있습니다. 데이터센터(US/EU), 프로젝트 API 키, Experiment deployment key, Session Replay 샘플링, Guides & Surveys 배포 설정도 확인해야 합니다. **`VITE_AMPLITUDE_ENABLED=true`로 바꾸는 즉시 SDK 자동 수집과 네트워크 요청이 시작됩니다.** 그 전에 목업의 예시 데이터가 실제 PoC 데이터와 섞이는 범위를 검토하세요.
 
 ## 참고
 

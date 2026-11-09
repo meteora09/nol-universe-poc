@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, {useEffect,useState} from 'react';
 import {Check, ClipboardCopy, Info, RotateCcw, UserRound, WandSparkles} from 'lucide-react';
 import {personas} from './data';
-import {getAmplitudeDeviceId} from './amplitude';
+import {getAmplitudeDeviceId,getTaggingPreview} from './amplitude';
 import './poc-control.css';
 
 export default function PocControl({db,user,page,amplitudeConfig,onFeatureChange,onStart,onResetCurrent,onResetAll,onCopy}){
@@ -11,6 +11,8 @@ export default function PocControl({db,user,page,amplitudeConfig,onFeatureChange
   const [fresh,setFresh]=useState(true);
   const [error,setError]=useState('');
   const [copied,setCopied]=useState(false);
+  const [taggingLog,setTaggingLog]=useState(getTaggingPreview);
+  useEffect(()=>{const refresh=()=>setTaggingLog(getTaggingPreview());window.addEventListener('nol-poc-tagged',refresh);return()=>window.removeEventListener('nol-poc-tagged',refresh)},[]);
   const sdkReady=amplitudeConfig.enabled && Boolean(amplitudeConfig.apiKey);
   const effectiveId=user?.amplitudeUserId || (user?.amplitudeDeviceId ? '없음 (익명)' : user?.id || '없음');
   const effectiveDeviceId=user?.amplitudeDeviceId || getAmplitudeDeviceId() || (sdkReady ? 'SDK 자동 생성' : '미설정');
@@ -42,6 +44,7 @@ export default function PocControl({db,user,page,amplitudeConfig,onFeatureChange
       <p className="poc-form-note"><Info size={15}/> Device ID만 입력하면 SDK에서는 익명 사용자로 시작합니다. 입력한 ID와 목업의 행동 데이터는 이 브라우저에만 저장됩니다. Amplitude ID 숫자값 대신 User ID 또는 Device ID를 사용하세요. 실제 프로필은 가져오지 않습니다.</p>
     </form><div className="poc-debug-card"><div className="poc-form-title"><Info size={20}/><strong>현재 디버그 상태</strong></div>
       <dl><div><dt>적용 User ID</dt><dd className="poc-mono" title={effectiveId}>{effectiveId}</dd></div><div><dt>적용 Device ID</dt><dd className="poc-mono" title={effectiveDeviceId}>{effectiveDeviceId}</dd></div><div><dt>연결 방식</dt><dd>{user?.amplitudeUserId&&user?.amplitudeDeviceId?'User + Device ID':user?.amplitudeUserId?'User ID':user?.amplitudeDeviceId?'Device ID (익명)':user?'PoC 데모 계정':'방문자'}</dd></div><div><dt>SDK</dt><dd>{sdkReady?'활성화':'비활성 · 이벤트 미전송'}</dd></div><div><dt>현재 화면</dt><dd>{page}</dd></div><div><dt>현재 여정</dt><dd>예약 {currentBookings} · 쿠폰 {currentCoupons} · 찜 {db.wishes.length} · 장바구니 {db.cart.length}</dd></div></dl>
+      <div className="poc-tag-log"><strong>최근 행동 태깅 미리보기</strong><small>{sdkReady?'SDK 전송 시도 · 수집 검증 필요':'이 브라우저에서만 표시 · 전송 안 함'}</small>{taggingLog.length?<div className="poc-tag-items">{taggingLog.slice(0,5).map((tag,i)=><details key={`${tag.at}-${i}`}><summary>{tag.eventType}</summary><pre>{JSON.stringify(tag.properties,null,2)}</pre></details>)}</div>:<p>검색·상세 보기·예약 등의 행동을 하면 태깅명이 여기에 표시됩니다.</p>}</div>
       <div className="poc-debug-actions"><button onClick={copy}><ClipboardCopy size={16}/>{copied?<><Check size={14}/> 복사됨</>:'디버그 정보 복사'}</button><button onClick={onResetCurrent} disabled={!user}><RotateCcw size={16}/> 현재 사용자 여정 초기화</button></div>
     </div></div>
     <div className="poc-feature-row"><label>실험 화면 <select value={db.feature.variant} onChange={e=>onFeatureChange({variant:e.target.value})}><option value="control">Control · 기본 예약 버튼</option><option value="treatment">Treatment · 혜택 강조 버튼</option></select></label><label className="poc-toggle"><input type="checkbox" checked={db.feature.guide} onChange={e=>onFeatureChange({guide:e.target.checked})}/> 가이드 미리보기</label><label className="poc-toggle"><input type="checkbox" checked={db.feature.survey} onChange={e=>onFeatureChange({survey:e.target.checked})}/> 설문 미리보기</label><button onClick={onResetAll}><RotateCcw size={15}/> 전체 PoC 데이터 초기화</button></div>

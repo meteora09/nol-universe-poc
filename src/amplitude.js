@@ -7,6 +7,10 @@ export const amplitudeConfig = {
 };
 let initialization;
 let amplitude;
+const recentTags = [];
+export function getTaggingPreview() {
+  return [...recentTags];
+}
 export function initializeAmplitude(initialUserId, initialDeviceId) {
   if (!amplitudeConfig.enabled || !amplitudeConfig.apiKey) return Promise.resolve(false);
   if (!initialization) {
@@ -14,7 +18,7 @@ export function initializeAmplitude(initialUserId, initialDeviceId) {
       amplitude = sdk;
       await amplitude.initAll(amplitudeConfig.apiKey, {
         serverZone: amplitudeConfig.serverZone,
-        analytics: { autocapture: true, ...(initialUserId ? { userId: initialUserId } : {}), ...(initialDeviceId ? { deviceId: initialDeviceId } : {}) },
+        analytics: { autocapture: { elementInteractions: false, formInteractions: false }, ...(initialUserId ? { userId: initialUserId } : {}), ...(initialDeviceId ? { deviceId: initialDeviceId } : {}) },
         sessionReplay: { sampleRate: 1 },
         engagement: { skip: false },
       });
@@ -44,4 +48,23 @@ export function clearAmplitudeUser() {
 export function getAmplitudeDeviceId() {
   return amplitude?.getDeviceId() || null;
 }
-// Custom track calls intentionally wait for the Braze-derived taxonomy.
+export async function trackBehavior(tag, user) {
+  if (!tag) return false;
+  const properties = {platform: 'web', ...tag.properties};
+  recentTags.unshift({at: new Date().toISOString(), eventType: tag.eventType, properties});
+  recentTags.length = Math.min(recentTags.length, 20);
+  window.dispatchEvent(new Event('nol-poc-tagged'));
+  if (!amplitudeConfig.enabled || !amplitudeConfig.apiKey) return false;
+  try {
+    if (!await initializeAmplitude()) return false;
+    if (user) {
+      if (user.amplitudeDeviceId) amplitude.setDeviceId(user.amplitudeDeviceId);
+      amplitude.setUserId(user.amplitudeUserId || (user.amplitudeDeviceId ? undefined : user.id));
+    }
+    amplitude.track(tag.eventType, properties);
+    return true;
+  } catch (error) {
+    console.warn('Amplitude 행동 태깅에 실패했습니다.', error);
+    return false;
+  }
+}
