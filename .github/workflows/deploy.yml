@@ -33,7 +33,11 @@ jobs:
       - name: Build for GitHub Pages
         run: npm run build -- --base=/nol-universe-poc/
         env:
-          VITE_AMPLITUDE_ENABLED: 'false'
+          VITE_AMPLITUDE_ENABLED: 'true'
+          VITE_AMPLITUDE_API_KEY: '5cafdd0fc026dbe28bacf65fbdad523c'
+          VITE_AMPLITUDE_SERVER_ZONE: 'US'
+          VITE_AMPLITUDE_EXPERIMENT_DEPLOYMENT_KEY: ${{ vars.AMPLITUDE_EXPERIMENT_DEPLOYMENT_KEY }}
+          VITE_AMPLITUDE_FEATURE_FLAG_KEY: 'nol-poc-booking-cta'
       - name: Configure Pages
         uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
       - name: Upload Pages artifact

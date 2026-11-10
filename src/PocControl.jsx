@@ -4,7 +4,7 @@ import {personas} from './data';
 import {getAmplitudeDeviceId,getTaggingPreview} from './amplitude';
 import './poc-control.css';
 
-export default function PocControl({db,user,page,amplitudeConfig,onFeatureChange,onStart,onResetCurrent,onResetAll,onCopy}){
+export default function PocControl({db,user,page,amplitudeConfig,remoteVariant,onFeatureChange,onStart,onResetCurrent,onResetAll,onCopy}){
   const [externalId,setExternalId]=useState(user?.amplitudeUserId || '');
   const [deviceId,setDeviceId]=useState(user?.amplitudeDeviceId || '');
   const [personaId,setPersonaId]=useState(user?.sourcePersonaId || personas[0].id);
@@ -33,20 +33,20 @@ export default function PocControl({db,user,page,amplitudeConfig,onFeatureChange
     <div className="poc-control-grid"><form className="poc-identity-form" onSubmit={start}>
       <div className="poc-form-title"><UserRound size={20}/><strong>Amplitude ID로 시작</strong></div>
       <label htmlFor="poc-amplitude-id">Amplitude User ID (선택)</label>
-      <input id="poc-amplitude-id" autoComplete="off" value={externalId} onChange={e=>{setExternalId(e.target.value);setError('')}} placeholder="Amplitude의 User ID를 붙여넣기" />
+      <input id="poc-amplitude-id" className="amp-mask" autoComplete="off" value={externalId} onChange={e=>{setExternalId(e.target.value);setError('')}} placeholder="Amplitude의 User ID를 붙여넣기" />
       <label htmlFor="poc-device-id">Amplitude Device ID (선택)</label>
-      <input id="poc-device-id" autoComplete="off" value={deviceId} onChange={e=>{setDeviceId(e.target.value);setError('')}} placeholder="Amplitude의 Device ID를 붙여넣기" />
+      <input id="poc-device-id" className="amp-mask" autoComplete="off" value={deviceId} onChange={e=>{setDeviceId(e.target.value);setError('')}} placeholder="Amplitude의 Device ID를 붙여넣기" />
       <label htmlFor="poc-persona">목업 화면에 적용할 데모 시나리오</label>
       <select id="poc-persona" value={personaId} onChange={e=>setPersonaId(e.target.value)}>{personas.map(persona=><option key={persona.id} value={persona.id}>{persona.name} · {persona.blurb}</option>)}</select>
       <label className="poc-check"><input type="checkbox" checked={fresh} onChange={e=>setFresh(e.target.checked)}/> 장바구니·찜·최근 본 상품을 비우고 시작</label>
       {error&&<p className="poc-error" role="alert">{error}</p>}
       <button className="poc-start" type="submit"><WandSparkles size={17}/> 입력한 ID로 여정 시작</button>
-      <p className="poc-form-note"><Info size={15}/> Device ID만 입력하면 SDK에서는 익명 사용자로 시작합니다. 입력한 ID와 목업의 행동 데이터는 이 브라우저에만 저장됩니다. Amplitude ID 숫자값 대신 User ID 또는 Device ID를 사용하세요. 실제 프로필은 가져오지 않습니다.</p>
+      <p className="poc-form-note"><Info size={15}/> Device ID만 입력하면 SDK에서는 익명 사용자로 시작합니다. 목업의 예약과 쿠폰은 이 브라우저에 저장되고, 행동 이벤트는 Amplitude로 전송됩니다. Amplitude ID 숫자값 대신 User ID 또는 Device ID를 사용하세요. 실제 프로필은 가져오지 않습니다.</p>
     </form><div className="poc-debug-card"><div className="poc-form-title"><Info size={20}/><strong>현재 디버그 상태</strong></div>
-      <dl><div><dt>적용 User ID</dt><dd className="poc-mono" title={effectiveId}>{effectiveId}</dd></div><div><dt>적용 Device ID</dt><dd className="poc-mono" title={effectiveDeviceId}>{effectiveDeviceId}</dd></div><div><dt>연결 방식</dt><dd>{user?.amplitudeUserId&&user?.amplitudeDeviceId?'User + Device ID':user?.amplitudeUserId?'User ID':user?.amplitudeDeviceId?'Device ID (익명)':user?'PoC 데모 계정':'방문자'}</dd></div><div><dt>SDK</dt><dd>{sdkReady?'활성화':'비활성 · 이벤트 미전송'}</dd></div><div><dt>현재 화면</dt><dd>{page}</dd></div><div><dt>현재 여정</dt><dd>예약 {currentBookings} · 쿠폰 {currentCoupons} · 찜 {db.wishes.length} · 장바구니 {db.cart.length}</dd></div></dl>
-      <div className="poc-tag-log"><strong>최근 행동 태깅 미리보기</strong><small>{sdkReady?'SDK 전송 시도 · 수집 검증 필요':'이 브라우저에서만 표시 · 전송 안 함'}</small>{taggingLog.length?<div className="poc-tag-items">{taggingLog.slice(0,5).map((tag,i)=><details key={`${tag.at}-${i}`}><summary>{tag.eventType}</summary><pre>{JSON.stringify(tag.properties,null,2)}</pre></details>)}</div>:<p>검색·상세 보기·예약 등의 행동을 하면 태깅명이 여기에 표시됩니다.</p>}</div>
+      <dl><div><dt>적용 User ID</dt><dd className="poc-mono amp-mask">{effectiveId}</dd></div><div><dt>적용 Device ID</dt><dd className="poc-mono amp-mask">{effectiveDeviceId}</dd></div><div><dt>연결 방식</dt><dd>{user?.amplitudeUserId&&user?.amplitudeDeviceId?'User + Device ID':user?.amplitudeUserId?'User ID':user?.amplitudeDeviceId?'Device ID (익명)':user?'PoC 데모 계정':'방문자'}</dd></div><div><dt>SDK</dt><dd>{sdkReady?'활성화':'비활성 · 이벤트 미전송'}</dd></div><div><dt>현재 화면</dt><dd>{page}</dd></div><div><dt>현재 여정</dt><dd>예약 {currentBookings} · 쿠폰 {currentCoupons} · 찜 {db.wishes.length} · 장바구니 {db.cart.length}</dd></div></dl>
+      <div className="poc-tag-log"><strong>최근 행동 태깅</strong><small>{sdkReady?'SDK 응답을 이벤트별로 표시':'이 브라우저에서만 표시 · 전송 안 함'}</small>{taggingLog.length?<div className="poc-tag-items">{taggingLog.slice(0,5).map((tag,i)=><details key={`${tag.at}-${i}`}><summary>{tag.eventType} · {tag.status}</summary><pre>{JSON.stringify(tag.properties,null,2)}</pre></details>)}</div>:<p>검색·상세 보기·예약 등의 행동을 하면 태깅명이 여기에 표시됩니다.</p>}</div>
       <div className="poc-debug-actions"><button onClick={copy}><ClipboardCopy size={16}/>{copied?<><Check size={14}/> 복사됨</>:'디버그 정보 복사'}</button><button onClick={onResetCurrent} disabled={!user}><RotateCcw size={16}/> 현재 사용자 여정 초기화</button></div>
     </div></div>
-    <div className="poc-feature-row"><label>실험 화면 <select value={db.feature.variant} onChange={e=>onFeatureChange({variant:e.target.value})}><option value="control">Control · 기본 예약 버튼</option><option value="treatment">Treatment · 혜택 강조 버튼</option></select></label><label className="poc-toggle"><input type="checkbox" checked={db.feature.guide} onChange={e=>onFeatureChange({guide:e.target.checked})}/> 가이드 미리보기</label><label className="poc-toggle"><input type="checkbox" checked={db.feature.survey} onChange={e=>onFeatureChange({survey:e.target.checked})}/> 설문 미리보기</label><button onClick={onResetAll}><RotateCcw size={15}/> 전체 PoC 데이터 초기화</button></div>
+    <div className="poc-feature-row"><label>실험 화면 <select value={db.feature.mode==='local'?db.feature.variant:'amplitude'} onChange={e=>onFeatureChange(e.target.value==='amplitude'?{mode:'amplitude'}:{mode:'local',variant:e.target.value})}><option value="amplitude">Amplitude 배정{remoteVariant?` · ${remoteVariant}`:' · 플래그 대기'}</option><option value="control">Control 미리보기 · 기본 예약 버튼</option><option value="treatment">Treatment 미리보기 · 혜택 강조 버튼</option></select></label><label className="poc-toggle"><input type="checkbox" checked={db.feature.guide} onChange={e=>onFeatureChange({guide:e.target.checked})}/> 가이드 미리보기</label><label className="poc-toggle"><input type="checkbox" checked={db.feature.survey} onChange={e=>onFeatureChange({survey:e.target.checked})}/> 설문 미리보기</label><button onClick={onResetAll}><RotateCcw size={15}/> 전체 PoC 데이터 초기화</button></div>
   </section>;
 }
