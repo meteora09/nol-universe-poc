@@ -1,10 +1,14 @@
 // One browser Analytics instance powers events, Replay, Feature Experiment and G&S.
+import {normalizeRoomFlagValue} from './hotelRoomExperiment';
 export const amplitudeConfig = {
   apiKey: import.meta.env.VITE_AMPLITUDE_API_KEY || '',
   enabled: import.meta.env.VITE_AMPLITUDE_ENABLED === 'true',
   serverZone: import.meta.env.VITE_AMPLITUDE_SERVER_ZONE || 'US',
   experimentDeploymentKey: import.meta.env.VITE_AMPLITUDE_EXPERIMENT_DEPLOYMENT_KEY || import.meta.env.VITE_AMPLITUDE_API_KEY || '',
   featureFlagKey: import.meta.env.VITE_AMPLITUDE_FEATURE_FLAG_KEY || 'nol-poc-booking-cta',
+  hotelRoomFlagKey: import.meta.env.VITE_HOTEL_ROOM_FLAG_KEY || 'top10_hotel_room_summary_card',
+  hotelRoomExperimentEnabled: import.meta.env.VITE_HOTEL_ROOM_EXPERIMENT_ENABLED === 'true',
+  hotelRoomConflictResolved: import.meta.env.VITE_HOTEL_ROOM_CONFLICT_RESOLVED === 'true',
 };
 let initialization;
 let amplitude;
@@ -81,6 +85,28 @@ export async function getBookingExperimentVariant(user) {
 export function exposeBookingExperiment() {
   if (amplitudeConfig.enabled && amplitudeConfig.featureFlagKey) {
     amplitude?.experiment()?.exposure(amplitudeConfig.featureFlagKey);
+  }
+}
+export async function getHotelRoomExperimentVariant(user) {
+  if (!amplitudeConfig.hotelRoomExperimentEnabled || !amplitudeConfig.hotelRoomConflictResolved || !amplitudeConfig.enabled || !amplitudeConfig.experimentDeploymentKey) return null;
+  if (!await initializeAmplitude()) return null;
+  const experiment = amplitude.experiment();
+  if (!experiment) return null;
+  try {
+    await experiment.fetch(user ? {
+      user_id: user.amplitudeUserId || (user.amplitudeDeviceId ? undefined : user.id),
+      device_id: user.amplitudeDeviceId || amplitude.getDeviceId(),
+    } : {device_id: amplitude.getDeviceId()});
+    const value = experiment.variant(amplitudeConfig.hotelRoomFlagKey)?.value;
+    return normalizeRoomFlagValue(value);
+  } catch (error) {
+    console.warn('호텔 객실 요약 실험 평가에 실패했습니다.', error);
+    return null;
+  }
+}
+export function exposeHotelRoomExperiment() {
+  if (amplitudeConfig.hotelRoomExperimentEnabled && amplitudeConfig.hotelRoomConflictResolved && amplitudeConfig.enabled) {
+    amplitude?.experiment()?.exposure(amplitudeConfig.hotelRoomFlagKey);
   }
 }
 export async function trackBehavior(tag, user) {

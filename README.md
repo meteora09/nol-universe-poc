@@ -26,6 +26,8 @@ npm run dev
 
 상단의 **PoC 시나리오**에서 예약 버튼의 Control/Treatment 화면을 바꾸고 가이드·설문 미리보기를 켜거나 끌 수 있습니다. Amplitude 배정은 Feature Experiment deployment key와 flag key가 설정되면 적용됩니다. Control/Treatment 미리보기는 로컬 화면 전환입니다.
 
+국내 호텔 객실 요약 카드는 **일반 웹 브라우저도** 피처 플래그의 `treatment` 배정일 때만 데모 대상 호텔 상세에 표시됩니다. 플래그가 비활성화됐거나 평가에 실패하면 `control` 화면으로 돌아갑니다. **PoC 시나리오 → 객실 요약 카드 → Treatment 미리보기**에서 플래그를 켜기 전에 화면을 확인할 수 있습니다. 호텔·객실·가격은 예시이며 운영 실험은 기본적으로 잠겨 있습니다. 대상, 데이터 출처, 측정 및 착수 조건은 [실험 계획](HOTEL_ROOM_EXPERIMENT.md)에 기록했습니다.
+
 ### Amplitude User ID·Device ID로 여정 시작
 
 **PoC 시나리오 → Amplitude ID로 시작**에서 **User ID**와 **Device ID** 중 하나 또는 둘 다 붙여넣고 목업용 데모 시나리오를 선택하세요. Amplitude ID 숫자값은 입력 대상이 아닙니다. 기존 사용자를 조회하거나 실제 프로필을 복제하지 않습니다. 선택한 시나리오는 화면과 로컬 예약 데이터의 시작값에만 적용됩니다. 입력한 User ID는 `setUserId`, Device ID는 `setDeviceId`에 적용됩니다. Device ID만 입력하면 SDK에는 User ID를 설정하지 않아 익명 디바이스로 취급합니다. 가상의 시나리오 속성으로 기존 Amplitude 프로필을 덮어쓰지 않습니다. Amplitude 행동 이벤트와 자동 수집은 활성화되어 있습니다.
