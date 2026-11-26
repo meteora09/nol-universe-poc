@@ -7,10 +7,8 @@ const hotel = {id: 'jeju-ocean', category: 'hotel', price: 128000};
 
 test('ordinary web includes the explicit hotel demo cohort', () => {
   assert.equal(isDemoHotelEligible(hotel), true);
-  assert.equal(isDemoHotelEligible(hotel, 'android'), true);
-  assert.equal(isDemoHotelEligible(hotel, 'ios'), false);
-  assert.equal(isDemoHotelEligible({...hotel, id: 'demo-hotel-7'}, 'android'), false);
-  assert.equal(isDemoHotelEligible({...hotel, category: 'pension'}, 'android'), false);
+  assert.equal(isDemoHotelEligible({...hotel, id: 'demo-hotel-7'}), false);
+  assert.equal(isDemoHotelEligible({...hotel, category: 'pension'}), false);
 });
 
 test('summary selects the cheapest eligible room and falls back when none fit', () => {
@@ -22,11 +20,10 @@ test('web card requires a live treatment flag and otherwise fails closed', () =>
   assert.equal(normalizeRoomFlagValue('on'), 'treatment');
   assert.equal(normalizeRoomFlagValue('control'), 'control');
   assert.equal(normalizeRoomFlagValue(undefined), null);
-  assert.equal(resolveRoomVariant('amplitude', 'treatment', null, false), 'control');
-  assert.equal(resolveRoomVariant('amplitude', 'treatment', null, true), 'control');
-  assert.equal(resolveRoomVariant('amplitude', 'control', 'treatment', false), 'control');
-  assert.equal(resolveRoomVariant('amplitude', 'control', 'treatment', true), 'treatment');
-  assert.equal(resolveRoomVariant('local', 'control', null, false), 'control');
+  assert.equal(resolveRoomVariant(null, true), 'control');
+  assert.equal(resolveRoomVariant('control', true), 'control');
+  assert.equal(resolveRoomVariant('treatment', false), 'control');
+  assert.equal(resolveRoomVariant('treatment', true), 'treatment');
 });
 
 test('existing hotel booking completion still produces one dedicated event', () => {

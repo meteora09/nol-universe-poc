@@ -5,13 +5,12 @@ export const demoTopHotelIds = new Set([
   'demo-hotel-4', 'demo-hotel-5', 'demo-hotel-6',
 ]);
 
-// The web PoC shows the treatment on ordinary browsers too. The iOS option is
-// an explicit preview of the original Android-only targeting, not UA detection.
-export const isDemoHotelEligible = (product, previewPlatform = 'auto') =>
-  product?.category === 'hotel' && demoTopHotelIds.has(product.id) && previewPlatform !== 'ios';
+// The web PoC evaluates the flag on any browser for the explicit demo cohort.
+export const isDemoHotelEligible = product =>
+  product?.category === 'hotel' && demoTopHotelIds.has(product.id);
 
-export const resolveRoomVariant = (mode, previewVariant, remoteVariant, remoteEnabled) =>
-  mode === 'local' ? (previewVariant || 'control') : (remoteEnabled && remoteVariant === 'treatment' ? 'treatment' : 'control');
+export const resolveRoomVariant = (remoteVariant, remoteEnabled) =>
+  remoteEnabled && remoteVariant === 'treatment' ? 'treatment' : 'control';
 
 export const normalizeRoomFlagValue = value => {
   if (value === 'on' || value === 'treatment') return 'treatment';

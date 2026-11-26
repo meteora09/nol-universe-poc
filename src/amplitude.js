@@ -9,7 +9,6 @@ export const amplitudeConfig = {
   featureFlagKey: import.meta.env.VITE_AMPLITUDE_FEATURE_FLAG_KEY || 'nol-poc-booking-cta',
   hotelRoomFlagKey: import.meta.env.VITE_HOTEL_ROOM_FLAG_KEY || 'top10_hotel_room_summary_card',
   hotelRoomExperimentEnabled: import.meta.env.VITE_HOTEL_ROOM_EXPERIMENT_ENABLED === 'true',
-  hotelRoomConflictResolved: import.meta.env.VITE_HOTEL_ROOM_CONFLICT_RESOLVED === 'true',
 };
 let initialization;
 let amplitude;
@@ -133,12 +132,12 @@ export function exposeBookingExperiment() {
   }
 }
 export async function getHotelRoomExperimentVariant(user) {
-  if (!amplitudeConfig.hotelRoomExperimentEnabled || !amplitudeConfig.hotelRoomConflictResolved) return null;
+  if (!amplitudeConfig.hotelRoomExperimentEnabled) return null;
   const variants = await fetchExperimentVariants(user, '객실 상세');
   return normalizeRoomFlagValue(variants?.hotelRoom);
 }
 export function exposeHotelRoomExperiment() {
-  if (amplitudeConfig.hotelRoomExperimentEnabled && amplitudeConfig.hotelRoomConflictResolved && amplitudeConfig.enabled) {
+  if (amplitudeConfig.hotelRoomExperimentEnabled && amplitudeConfig.enabled) {
     amplitude?.experiment()?.exposure(amplitudeConfig.hotelRoomFlagKey);
   }
 }
