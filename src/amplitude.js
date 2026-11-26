@@ -1,5 +1,6 @@
 // One browser Analytics instance powers events, Replay, Feature Experiment and G&S.
 import {normalizeRoomFlagValue} from './hotelRoomExperiment';
+import {makeExperimentUser} from './experimentIdentity';
 export const amplitudeConfig = {
   apiKey: import.meta.env.VITE_AMPLITUDE_API_KEY || '',
   enabled: import.meta.env.VITE_AMPLITUDE_ENABLED === 'true',
@@ -12,6 +13,24 @@ export const amplitudeConfig = {
 };
 let initialization;
 let amplitude;
+let identityOperations = Promise.resolve();
+let lastFetchIdentityKey = null;
+const recentFetches = [];
+export const getExperimentFetchDiagnostics = () => [...recentFetches];
+const recordFetch = entry => {
+  if (!recentFetches.includes(entry)) recentFetches.unshift(entry);
+  recentFetches.length = Math.min(recentFetches.length, 8);
+  window.dispatchEvent(new Event('nol-poc-experiment-fetch'));
+};
+const enqueueIdentityOperation = operation => {
+  const next = identityOperations.catch(() => {}).then(operation);
+  identityOperations = next.catch(() => {});
+  return next;
+};
+const applyAnalyticsIdentity = user => {
+  if (user?.amplitudeDeviceId) amplitude.setDeviceId(user.amplitudeDeviceId);
+  amplitude.setUserId(user?.amplitudeUserId || (user?.amplitudeDeviceId ? undefined : user?.id));
+};
 const recentTags = [];
 export function getTaggingPreview() {
   return [...recentTags];
@@ -35,8 +54,8 @@ export function initializeAmplitude(initialUserId, initialDeviceId) {
         },
         sessionReplay: { sampleRate: 1 },
         experiment: amplitudeConfig.experimentDeploymentKey
-          ? { deploymentKey: amplitudeConfig.experimentDeploymentKey, automaticExposureTracking: false }
-          : { automaticExposureTracking: false },
+          ? { deploymentKey: amplitudeConfig.experimentDeploymentKey, automaticExposureTracking: false, throwOnError: true }
+          : { automaticExposureTracking: false, throwOnError: true },
         engagement: { skip: false },
       });
       return true;
@@ -46,41 +65,67 @@ export function initializeAmplitude(initialUserId, initialDeviceId) {
 }
 export async function identifySignedInUser(user) {
   if (!amplitudeConfig.enabled) return;
-  if (!await initializeAmplitude()) return;
-  if (user.amplitudeDeviceId) amplitude.setDeviceId(user.amplitudeDeviceId);
-  amplitude.setUserId(user.amplitudeUserId || (user.amplitudeDeviceId ? undefined : user.id));
-  // A pasted Amplitude User ID represents an existing real profile. Do not
-  // overwrite its properties with the local demo persona's fake attributes.
-  if (user.amplitudeUserId || user.amplitudeDeviceId) return;
-  const identify = new amplitude.Identify()
-    .set('tier', user.tier)
-    .set('signup_date', user.signupDate)
-    .set('lifetime_spend', user.lifetimeSpend)
-    .set('persona', user.persona || 'custom');
-  amplitude.identify(identify);
+  return enqueueIdentityOperation(async () => {
+    if (!await initializeAmplitude()) return;
+    applyAnalyticsIdentity(user);
+    // A pasted Amplitude ID represents an existing real profile.
+    if (user.amplitudeUserId || user.amplitudeDeviceId) return;
+    const identify = new amplitude.Identify()
+      .set('tier', user.tier)
+      .set('signup_date', user.signupDate)
+      .set('lifetime_spend', user.lifetimeSpend)
+      .set('persona', user.persona || 'custom');
+    amplitude.identify(identify);
+  });
 }
 export function clearAmplitudeUser() {
-  if (amplitudeConfig.enabled && amplitude) amplitude.reset();
+  if (!amplitudeConfig.enabled) return Promise.resolve();
+  return enqueueIdentityOperation(async () => {
+    if (!await initializeAmplitude()) return;
+    amplitude.reset();
+    amplitude.experiment()?.clear();
+    lastFetchIdentityKey = null;
+  });
 }
 export function getAmplitudeDeviceId() {
   return amplitude?.getDeviceId() || null;
 }
-export async function getBookingExperimentVariant(user) {
-  if (!amplitudeConfig.enabled || !amplitudeConfig.experimentDeploymentKey || !amplitudeConfig.featureFlagKey) return null;
-  if (!await initializeAmplitude()) return null;
-  const experiment = amplitude.experiment();
-  if (!experiment) return null;
+async function fetchExperimentVariants(user, reason) {
+  if (!amplitudeConfig.enabled || !amplitudeConfig.experimentDeploymentKey) return null;
+  const entry = {at: new Date().toISOString(), reason, identity: user?.amplitudeDeviceId&&!user?.amplitudeUserId?'Device ID':user?'User ID':'익명', status:'대기 중'};
+  recordFetch(entry);
   try {
-    await experiment.fetch(user ? {
-      user_id: user.amplitudeUserId || (user.amplitudeDeviceId ? undefined : user.id),
-      device_id: user.amplitudeDeviceId || amplitude.getDeviceId(),
-    } : { device_id: amplitude.getDeviceId() });
-    const value = experiment.variant(amplitudeConfig.featureFlagKey)?.value;
-    return value === 'control' || value === 'treatment' ? value : null;
+    const variants = await enqueueIdentityOperation(async () => {
+      if (!await initializeAmplitude()) throw new Error('SDK 초기화 실패');
+      applyAnalyticsIdentity(user);
+      const experiment = amplitude.experiment();
+      if (!experiment) throw new Error('Experiment SDK 없음');
+      const context = makeExperimentUser(user, amplitude.getDeviceId());
+      const key = JSON.stringify(context);
+      if (key !== lastFetchIdentityKey) {
+        // A failed fetch must not show a variant cached for a previous user.
+        experiment.clear();
+        lastFetchIdentityKey = key;
+      }
+      entry.status = '요청 중'; recordFetch(entry);
+      await experiment.fetch(context);
+      return {
+        booking: experiment.variant(amplitudeConfig.featureFlagKey)?.value,
+        hotelRoom: experiment.variant(amplitudeConfig.hotelRoomFlagKey)?.value,
+      };
+    });
+    entry.status = '성공'; recordFetch(entry);
+    return variants;
   } catch (error) {
+    entry.status = '실패'; recordFetch(entry);
     console.warn('Amplitude Feature Experiment 평가에 실패했습니다.', error);
     return null;
   }
+}
+export async function getBookingExperimentVariant(user) {
+  const variants = await fetchExperimentVariants(user, '세션/아이덴티티');
+  const value = variants?.booking;
+  return value === 'control' || value === 'treatment' ? value : null;
 }
 export function exposeBookingExperiment() {
   if (amplitudeConfig.enabled && amplitudeConfig.featureFlagKey) {
@@ -88,21 +133,9 @@ export function exposeBookingExperiment() {
   }
 }
 export async function getHotelRoomExperimentVariant(user) {
-  if (!amplitudeConfig.hotelRoomExperimentEnabled || !amplitudeConfig.hotelRoomConflictResolved || !amplitudeConfig.enabled || !amplitudeConfig.experimentDeploymentKey) return null;
-  if (!await initializeAmplitude()) return null;
-  const experiment = amplitude.experiment();
-  if (!experiment) return null;
-  try {
-    await experiment.fetch(user ? {
-      user_id: user.amplitudeUserId || (user.amplitudeDeviceId ? undefined : user.id),
-      device_id: user.amplitudeDeviceId || amplitude.getDeviceId(),
-    } : {device_id: amplitude.getDeviceId()});
-    const value = experiment.variant(amplitudeConfig.hotelRoomFlagKey)?.value;
-    return normalizeRoomFlagValue(value);
-  } catch (error) {
-    console.warn('호텔 객실 요약 실험 평가에 실패했습니다.', error);
-    return null;
-  }
+  if (!amplitudeConfig.hotelRoomExperimentEnabled || !amplitudeConfig.hotelRoomConflictResolved) return null;
+  const variants = await fetchExperimentVariants(user, '객실 상세');
+  return normalizeRoomFlagValue(variants?.hotelRoom);
 }
 export function exposeHotelRoomExperiment() {
   if (amplitudeConfig.hotelRoomExperimentEnabled && amplitudeConfig.hotelRoomConflictResolved && amplitudeConfig.enabled) {

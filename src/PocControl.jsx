@@ -1,10 +1,10 @@
 import React, {useEffect,useState} from 'react';
 import {Check, ClipboardCopy, Info, RotateCcw, UserRound, WandSparkles} from 'lucide-react';
 import {personas} from './data';
-import {getAmplitudeDeviceId,getTaggingPreview} from './amplitude';
+import {getAmplitudeDeviceId,getTaggingPreview,getExperimentFetchDiagnostics} from './amplitude';
 import './poc-control.css';
 
-export default function PocControl({db,user,page,amplitudeConfig,remoteVariant,remoteRoomVariant,onFeatureChange,onStart,onResetCurrent,onResetAll,onCopy}){
+export default function PocControl({db,user,page,amplitudeConfig,remoteVariant,remoteRoomVariant,onFeatureChange,onShowHotelDemo,onStart,onResetCurrent,onResetAll,onCopy}){
   const [externalId,setExternalId]=useState(user?.amplitudeUserId || '');
   const [deviceId,setDeviceId]=useState(user?.amplitudeDeviceId || '');
   const [personaId,setPersonaId]=useState(user?.sourcePersonaId || personas[0].id);
@@ -12,7 +12,9 @@ export default function PocControl({db,user,page,amplitudeConfig,remoteVariant,r
   const [error,setError]=useState('');
   const [copied,setCopied]=useState(false);
   const [taggingLog,setTaggingLog]=useState(getTaggingPreview);
+  const [fetchLog,setFetchLog]=useState(getExperimentFetchDiagnostics);
   useEffect(()=>{const refresh=()=>setTaggingLog(getTaggingPreview());window.addEventListener('nol-poc-tagged',refresh);return()=>window.removeEventListener('nol-poc-tagged',refresh)},[]);
+  useEffect(()=>{const refresh=()=>setFetchLog(getExperimentFetchDiagnostics());window.addEventListener('nol-poc-experiment-fetch',refresh);return()=>window.removeEventListener('nol-poc-experiment-fetch',refresh)},[]);
   const sdkReady=amplitudeConfig.enabled && Boolean(amplitudeConfig.apiKey);
   const effectiveId=user?.amplitudeUserId || (user?.amplitudeDeviceId ? '없음 (익명)' : user?.id || '없음');
   const effectiveDeviceId=user?.amplitudeDeviceId || getAmplitudeDeviceId() || (sdkReady ? 'SDK 자동 생성' : '미설정');
@@ -45,9 +47,10 @@ export default function PocControl({db,user,page,amplitudeConfig,remoteVariant,r
     </form><div className="poc-debug-card"><div className="poc-form-title"><Info size={20}/><strong>현재 디버그 상태</strong></div>
       <dl><div><dt>적용 User ID</dt><dd className="poc-mono amp-mask">{effectiveId}</dd></div><div><dt>적용 Device ID</dt><dd className="poc-mono amp-mask">{effectiveDeviceId}</dd></div><div><dt>연결 방식</dt><dd>{user?.amplitudeUserId&&user?.amplitudeDeviceId?'User + Device ID':user?.amplitudeUserId?'User ID':user?.amplitudeDeviceId?'Device ID (익명)':user?'PoC 데모 계정':'방문자'}</dd></div><div><dt>SDK</dt><dd>{sdkReady?'활성화':'비활성 · 이벤트 미전송'}</dd></div><div><dt>현재 화면</dt><dd>{page}</dd></div><div><dt>현재 여정</dt><dd>예약 {currentBookings} · 쿠폰 {currentCoupons} · 찜 {db.wishes.length} · 장바구니 {db.cart.length}</dd></div></dl>
       <div className="poc-tag-log"><strong>최근 행동 태깅</strong><small>{sdkReady?'SDK 응답을 이벤트별로 표시':'이 브라우저에서만 표시 · 전송 안 함'}</small>{taggingLog.length?<div className="poc-tag-items">{taggingLog.slice(0,5).map((tag,i)=><details key={`${tag.at}-${i}`}><summary>{tag.eventType} · {tag.status}</summary><pre>{JSON.stringify(tag.properties,null,2)}</pre></details>)}</div>:<p>검색·상세 보기·예약 등의 행동을 하면 태깅명이 여기에 표시됩니다.</p>}</div>
+      <div className="poc-tag-log"><strong>최근 Feature Flag fetch</strong><small>사용자 ID 값은 표시하지 않습니다.</small>{fetchLog.length?<div className="poc-fetch-items">{fetchLog.slice(0,5).map((entry,i)=><p key={`${entry.at}-${i}`}>{entry.reason} · {entry.identity} · {entry.status}</p>)}</div>:<p>세션 시작 시 fetch 상태가 여기에 표시됩니다. 객실 플래그는 운영 잠금이 해제되면 상세에서도 평가합니다.</p>}</div>
       <div className="poc-debug-actions"><button onClick={copy}><ClipboardCopy size={16}/>{copied?<><Check size={14}/> 복사됨</>:'디버그 정보 복사'}</button><button onClick={onResetCurrent} disabled={!user}><RotateCcw size={16}/> 현재 사용자 여정 초기화</button></div>
     </div></div>
     <div className="poc-feature-row"><label>실험 화면 <select value={db.feature.mode==='local'?db.feature.variant:'amplitude'} onChange={e=>onFeatureChange(e.target.value==='amplitude'?{mode:'amplitude'}:{mode:'local',variant:e.target.value})}><option value="amplitude">Amplitude 배정{remoteVariant?` · ${remoteVariant}`:' · 플래그 대기'}</option><option value="control">Control 미리보기 · 기본 예약 버튼</option><option value="treatment">Treatment 미리보기 · 혜택 강조 버튼</option></select></label><label className="poc-toggle"><input type="checkbox" checked={db.feature.guide} onChange={e=>onFeatureChange({guide:e.target.checked})}/> 가이드 미리보기</label><label className="poc-toggle"><input type="checkbox" checked={db.feature.survey} onChange={e=>onFeatureChange({survey:e.target.checked})}/> 설문 미리보기</label><button onClick={onResetAll}><RotateCcw size={15}/> 전체 PoC 데이터 초기화</button></div>
-    <div className="poc-feature-row"><label>호텔 객실 표시 범위 <select value={db.feature.hotelPreviewPlatform||'auto'} onChange={e=>onFeatureChange({hotelPreviewPlatform:e.target.value})}><option value="auto">일반 웹 포함</option><option value="android">Android 미리보기</option><option value="ios">iOS 제외 조건 미리보기</option></select></label><label>객실 요약 카드 <select value={db.feature.hotelRoomMode==='local'?(db.feature.hotelRoomVariant||'control'):'amplitude'} onChange={e=>onFeatureChange(e.target.value==='amplitude'?{hotelRoomMode:'amplitude'}:{hotelRoomMode:'local',hotelRoomVariant:e.target.value})}><option value="amplitude">{remoteRoomVariant?`Amplitude 배정 · ${remoteRoomVariant}`:'Amplitude 배정 · 플래그 대기'}</option><option value="control">Control 미리보기 · 기존 객실 목록</option><option value="treatment">Treatment 미리보기 · 요약 카드</option></select></label><p className="poc-room-note">일반 웹도 피처 플래그의 treatment 배정에서만 카드가 보입니다. 상위 10개 호텔은 데모 표본이며 실제 목록·예약 가능 객실·가격·취소 정보와 실험 충돌이 확인될 때까지 원격 실험은 꺼져 있습니다.</p></div>
+    <div className="poc-feature-row"><label>호텔 객실 표시 범위 <select value={db.feature.hotelPreviewPlatform||'auto'} onChange={e=>onFeatureChange({hotelPreviewPlatform:e.target.value})}><option value="auto">일반 웹 포함</option><option value="android">Android 미리보기</option><option value="ios">iOS 제외 조건 미리보기</option></select></label><label>객실 요약 카드 <select value={db.feature.hotelRoomMode==='local'?(db.feature.hotelRoomVariant||'control'):'amplitude'} onChange={e=>onFeatureChange(e.target.value==='amplitude'?{hotelRoomMode:'amplitude'}:{hotelRoomMode:'local',hotelRoomVariant:e.target.value})}><option value="amplitude">{remoteRoomVariant?`Amplitude 배정 · ${remoteRoomVariant}`:'Amplitude 배정 · 플래그 대기'}</option><option value="control">Control 미리보기 · 기존 객실 목록</option><option value="treatment">Treatment 미리보기 · 요약 카드</option></select></label><button type="button" onClick={onShowHotelDemo}>객실 카드 예시 바로보기</button><p className="poc-room-note">일반 웹도 피처 플래그의 treatment 배정에서만 카드가 보입니다. 상위 10개 호텔은 데모 표본이며 실제 목록·예약 가능 객실·가격·취소 정보와 실험 충돌이 확인될 때까지 원격 실험은 꺼져 있습니다.</p></div>
   </section>;
 }
